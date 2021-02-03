@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "180200417237",
+    "project_id": "chatapp-dda2c",
+    "storage_bucket": "chatapp-dda2c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:180200417237:android:c2c2d4a99ad12538c77f5c",
+        "android_client_info": {
+          "package_name": "com.example.chatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "180200417237-7v5kqfv2cl55mm84ti0l87al1ar2gnsu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlHrHghf8BIV0d1OcI0hdE1h6JRSqRDGc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "180200417237-7v5kqfv2cl55mm84ti0l87al1ar2gnsu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
