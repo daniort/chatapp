@@ -1,18 +1,40 @@
+import 'package:chatapp/pages/pages.dart';
+import 'package:chatapp/services/services.dart';
 import 'package:chatapp/values/values.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ChatApp',
-      debugShowCheckedModeBanner: false,
-      home: MyHomePage(),
-    );
+    return ChangeNotifierProvider<AppState>(
+        create: (BuildContext context) => AppState(),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'ChatApp',
+          theme: ThemeData(
+            primarySwatch: Colors.deepPurple,
+          ),
+          routes: {
+            "/": (BuildContext context) {
+              final _state = Provider.of<AppState>(context, listen: true);
+              if (_state.login) {
+                return MyHomePage();
+              } else {
+                return LoginPage();
+              }
+            }
+          },
+        ));
   }
 }
 
@@ -26,70 +48,38 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final ancho = MediaQuery.of(context).size.width;
     final alto = MediaQuery.of(context).size.height - kToolbarHeight - 24;
-    // final _state = Provider.of<LoginState>(context, listen: true);
+    final _state = Provider.of<AppState>(context, listen: true);
 
     return Scaffold(
       backgroundColor: MyColors.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0.0,
-        title: Text('MyChatApp'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: (){
-              print('hola');
-            },
-          ),
-           IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: (){
-              print('hola');
-            },
-          )
-        ],
-      ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                  width: ancho,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
-                  ),
-                  child: ListView(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        margin: EdgeInsets.all(10),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                              //backgroundImage: Placeholder(),
-
-                              ),
-                          title: Text('Eberto'),
-                          subtitle: Text('Hola, Buenos días'),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('9:32am'),
-                              Icon(Icons.check_circle)
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  )),
+      body: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: MyColors.primaryBackground,
+            bottom: TabBar(
+              tabs: [
+                Tab(child: Text('CHATS')),
+                Tab(child: Text('CONTACTS')),
+              ],
             ),
-          ],
+            elevation: 0.0,
+            title: Text('MyChatApp'),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.menu),
+                onPressed: () {
+                  print('hola');
+                },
+              ),
+            ],
+          ),
+          body: TabBarView(
+            children: [
+              ChatsPage(),
+              ContactsPage(idname: _state.idname),
+            ],
+          ),
         ),
       ),
     );
