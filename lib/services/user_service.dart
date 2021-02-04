@@ -40,26 +40,19 @@ class UserServices {
 
   Stream getGroupMen({String dequien, String paraquien}) {
     try {
-      return realDB
-          .reference()
-          .child('groupMenssage')
-          // .orderByChild('dequien')
-          // .equalTo(dequien)
-          // .orderByChild('paraquien')
-          // .equalTo(paraquien)
-          .onValue;
-          
+      return realDB.reference().child('groupMenssage').onValue;
     } catch (e) {
       print(e);
     }
   }
 
   int fechData(DateTime selectedDate, TimeOfDay timeOfDay) {
-    return (selectedDate.year * 100000000) +
-        (selectedDate.month * 1000000) +
-        (selectedDate.day * 10000) +
-        (timeOfDay.hour * 100) +
-        timeOfDay.minute;
+    return selectedDate.millisecondsSinceEpoch;
+    // return (selectedDate.year * 100000000) +
+    //     (selectedDate.month * 1000000) +
+    //     (selectedDate.day * 10000) +
+    //     (timeOfDay.hour * 100) +
+    //     timeOfDay.minute;
   }
 
   Future<void> newMessage(
@@ -170,4 +163,26 @@ class UserServices {
     });
     return databaseReference.key;
   }
+
+  Stream getAllGroups({String dequien}) {
+    try {
+      return realDB.reference().child('groupMenssage').onValue;
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  // _eje() {
+  //   return Column(children: [
+  //     Container(child: inputCupon()),
+  //     Expanded(child: ListView()),
+  //     Container(
+  //         child: Column(
+  //       children: [
+  //         Container(child: _datosSubtotal()),
+  //         RaisedButton(),
+  //       ],
+  //     ))
+  //   ]);
+  // }
 }
