@@ -26,11 +26,11 @@ class _EditPageState extends State<EditPage> {
             child: Text('Tu ID es: ' + _state.idname,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
           ),
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Text('Tu Alias es: ' + _state.dataUser[0]['alias'],
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.all(15.0),
+          //   child: Text('Tu Alias es: ' + _state.dataUser[0]['alias'],
+          //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+          // ),
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: TextField(
