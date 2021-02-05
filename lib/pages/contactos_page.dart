@@ -37,11 +37,13 @@ class _ContactsPageState extends State<ContactsPage> {
                   Map user = snap.data[index];
                   return InkWell(
                     onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => ChatPage(
-                                para: user,
-                                idnameQuien: widget.idname,
-                              )));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) => ChatPage(
+                                  para: user['idname'],
+                                  groupKey: null,
+                                )),
+                      );
                     },
                     child: Container(
                       decoration: BoxDecoration(

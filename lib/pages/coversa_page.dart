@@ -3,12 +3,12 @@ import 'package:chatapp/services/services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ChatsPage extends StatefulWidget {
+class ConverPage extends StatefulWidget {
   @override
-  _ChatsPageState createState() => _ChatsPageState();
+  _ConverPageState createState() => _ConverPageState();
 }
 
-class _ChatsPageState extends State<ChatsPage> {
+class _ConverPageState extends State<ConverPage> {
   ScrollController _scroCon = new ScrollController();
 
   @override
@@ -32,7 +32,7 @@ class _ChatsPageState extends State<ChatsPage> {
                   ),
                 ),
                 child: StreamBuilder(
-                  stream: UserServices().getAllGroups(dequien: _state.idname),
+                  stream: UserServices().getAllGroups(),
                   builder: (BuildContext context, AsyncSnapshot snap) {
                     switch (snap.connectionState) {
                       case ConnectionState.waiting:
@@ -44,69 +44,68 @@ class _ChatsPageState extends State<ChatsPage> {
                         break;
                       case ConnectionState.active:
                         Map dataStream = snap.data.snapshot.value;
-                        print(dataStream);
-
                         if (snap.hasData != null && dataStream != null) {
                           if (dataStream.isNotEmpty) {
-                            List item = [];
+                            List items = [];
                             dataStream.forEach((index, data) {
-                              if (data['dequien'] == _state.idname)
-                                item.add(data);
+                              List _users = data['users'];
+                              if (_users.contains(_state.idname)) {
+                                items.add({"key": index, ...data});
+                              }
                             });
-                            item.sort((a, b) => b['fech'].compareTo(a['fech']));
-
-                            return Expanded(
-                              child: SingleChildScrollView(
-                                controller: _scroCon,
-                                physics: BouncingScrollPhysics(),
-                                child: Column(
-                                  children: [
-                                    for (var x in item)
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[300],
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        margin: EdgeInsets.all(10),
-                                        child: InkWell(
-                                          onTap: () {
-                                            print(x);
-                                            // Navigator.of(context).push(
-                                            //     MaterialPageRoute(
-                                            //         builder: (context) =>
-                                            //             ChatPage(
-                                            //               para: x,
-                                            //               idnameQuien:
-                                            //                   _state.idname,
-                                            //               groupKey: null,
-                                            //             )));
-                                          },
-                                          child: ListTile(
-                                            leading: CircleAvatar(),
-                                            title: Text(x['paraquien']),
-                                            subtitle: _lastMsn(x[
-                                                'mensajes']), //Text(x['mensajes'][0]['msn']),
-                                            trailing: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text('9:32am'),
-                                                Icon(Icons.check_circle)
-                                              ],
-                                            ),
-                                          ),
+                            items
+                                .sort((a, b) => b['fech'].compareTo(a['fech']));
+                            return ListView.builder(
+                                itemCount: items.length,
+                                itemBuilder: (context, index) {
+                                  Map x = items[index];
+                                  List _users = List<String>.from(x['users']);
+                                  _users.remove(_state.idname);
+                                  _users.join(', ');
+                                  String _el = _users[0];
+                                  List _msns = [];
+                                  x['mensajes'].forEach((index, data) {
+                                    _msns.add({"key": index, ...data});
+                                  });
+                                  _msns.sort(
+                                      (a, b) => b['fech'].compareTo(a['fech']));
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    margin: EdgeInsets.all(10),
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) => ChatPage(
+                                                    para: _el,
+                                                    groupKey: x['key'],
+                                                  )),
+                                        );
+                                      },
+                                      child: ListTile(
+                                        leading: CircleAvatar(),
+                                        title: Text(_el),
+                                        subtitle: Text(_msns[0]['msn']),
+                                        trailing: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text('9:32am'),
+                                            Icon(Icons.check_circle)
+                                          ],
                                         ),
                                       ),
-                                  ],
-                                ),
-                              ),
-                            );
+                                    ),
+                                  );
+                                });
                           }
                         } else {
-                          return Expanded(
-                              child: Container(child: Text('hola')));
+                          return Container(
+                              child: Center(
+                                  child: Text('No tienes ningún mensaje')));
                         }
                         break;
                       default:

@@ -6,8 +6,61 @@ import 'package:flutter/material.dart';
 class UserServices {
   final FirebaseDatabase realDB = new FirebaseDatabase();
 
-  // final FirebaseStorage _sto =
-  //     FirebaseStorage(storageBucket: 'gs://xoloapp-9c3d2.appspot.com');
+
+   Future<void> newMessage(
+      {String user1, String user2, String msn, String groupKey}) async {
+
+
+        print(user1);
+        print(user2);
+        print(msn);
+        print(groupKey);
+
+    DateTime hoy = DateTime.now();
+    TimeOfDay ahora = TimeOfDay.now();
+    int fech = fechData(hoy, ahora);
+
+    try {
+      if (groupKey == null) {
+        var grupo = await realDB
+            .reference()
+            .child('groupMenssage')
+            .once(); 
+        if (grupo == null || grupo.value == null) {
+          String _keygrup = _crearGrupo(user1, user2, fech);
+          _guardarMen(_keygrup, msn, user1, user2, fech);
+        } else {
+          bool existe = false;
+          String key;
+          Map item = {};
+          grupo.value.forEach((index, data) {
+            List _users = data['users'];
+            if (_users.contains(user1) && _users.contains(user2)) {
+              item = ({"key": index, ...data});
+              existe = true;
+            }
+          });
+          if (existe) {
+            print('Si ESTABA, YA LO ACTUALIZÉ');
+            _guardarMen(item['key'], msn, user1, user2, fech);
+            _updateGrupo(key, fech);
+          } else {
+            print('NO EXISTE, lo Creé.');
+            String _keygu = await _crearGrupo(user1, user2, fech);
+            _guardarMen(_keygu, msn, user1, user2, fech);
+          }
+        }
+      } else {
+        print('ME PASASTE LA KEY DEL GRUPO');
+        _guardarMen(groupKey, msn, user1, user2, fech);
+        _updateGrupo(groupKey, fech);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+
 
   Future<bool> newUser(String username) async {
     try {
@@ -26,9 +79,8 @@ class UserServices {
     print(idname);
     try {
       var users = await realDB.reference().child('users').once();
-      Map data = users.value;
       List item = [];
-      data.forEach((index, data) {
+      users.value.forEach((index, data) {
         if (idname != data['idname']) item.add({"key": index, ...data});
       });
       return item;
@@ -38,127 +90,30 @@ class UserServices {
     }
   }
 
-  Stream getGroupMen({String dequien, String paraquien}) {
+  Stream getGroupMen(String grupokey) {
     try {
-      return realDB.reference().child('groupMenssage').onValue;
+      if (grupokey == null)
+        return realDB.reference().child('groupMenssage').onValue;
+      else
+        return realDB
+            .reference()
+            .child('groupMenssage')
+            .child(grupokey)
+            .onValue;
     } catch (e) {
       print(e);
     }
   }
 
-  int fechData(DateTime selectedDate, TimeOfDay timeOfDay) {
-    return selectedDate.millisecondsSinceEpoch;
-    // return (selectedDate.year * 100000000) +
-    //     (selectedDate.month * 1000000) +
-    //     (selectedDate.day * 10000) +
-    //     (timeOfDay.hour * 100) +
-    //     timeOfDay.minute;
-  }
+  int fechData(DateTime selectedDate, TimeOfDay timeOfDay) =>
+      selectedDate.millisecondsSinceEpoch;
 
-  Future<void> newMessage(
-      {String quien, String para, String msn, String groupKey}) async {
-    DateTime hoy = DateTime.now();
-    TimeOfDay ahora = TimeOfDay.now();
-    int fech = fechData(hoy, ahora);
-
-    try {
-      if (groupKey == null) {
-        var grupo = await realDB.reference().child('groupMenssage').once();
-        if (grupo == null || grupo.value == null) {
-          //aun no existen registros(crea el primero)
-          String _keyGrupoCreado = _crearGrupo(quien, para, fech);
-          realDB
-              .reference()
-              .child('groupMenssage')
-              .child(_keyGrupoCreado)
-              .child('mensajes')
-              .push()
-              .set({
-            'msn': msn,
-            'fech': fech,
-            "dequien": quien,
-            "paraquien": para,
-          });
-        } else {
-          Map data = grupo.value;
-          bool existe = false;
-          String key;
-          List item = [];
-          data.forEach((index, data) => item.add({"key": index, ...data}));
-          for (var i in item) {
-            if (i['dequien'] == quien && i['paraquien'] == para) {
-              existe = true;
-              key = i['key'];
-            }
-          }
-          if (existe) {
-            print('EXISTEEEEE');
-            print(key);
-            realDB
-                .reference()
-                .child('groupMenssage')
-                .child(key)
-                .child('mensajes')
-                .push()
-                .set({
-              'msn': msn,
-              'fech': fech,
-              "dequien": quien,
-              "paraquien": para,
-            });
-            realDB
-                .reference()
-                .child('groupMenssage')
-                .child(key)
-                .update({'fech': fech});
-          } else {
-            print('NOEXISTE');
-            String _keyGrupoCreado = await _crearGrupo(quien, para, fech);
-            realDB
-                .reference()
-                .child('groupMenssage')
-                .child(_keyGrupoCreado)
-                .child('mensajes')
-                .push()
-                .set({
-              'msn': msn,
-              'fech': fech,
-              "dequien": quien,
-              "paraquien": para,
-            });
-          }
-        }
-      } else {
-        print('ME PASASTE LA KEY DEL GRUPO');
-        realDB
-            .reference()
-            .child('groupMenssage')
-            .child(groupKey)
-            .child('mensajes')
-            .push()
-            .set({
-          'msn': msn,
-          'fech': fech,
-          "dequien": quien,
-          "paraquien": para,
-        });
-        realDB
-            .reference()
-            .child('groupMenssage')
-            .child(groupKey)
-            .update({'fech': fech});
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
-
+ 
   String _crearGrupo(String quien, String para, int fech) {
     DatabaseReference databaseReference =
         realDB.reference().child("groupMenssage").push();
     databaseReference.set({
-      "dequien": quien,
-      "paraquien": para,
+      "users": [quien, para],
       'fech': fech,
     });
     return databaseReference.key;
@@ -172,17 +127,57 @@ class UserServices {
     }
   }
 
-  // _eje() {
-  //   return Column(children: [
-  //     Container(child: inputCupon()),
-  //     Expanded(child: ListView()),
-  //     Container(
-  //         child: Column(
-  //       children: [
-  //         Container(child: _datosSubtotal()),
-  //         RaisedButton(),
-  //       ],
-  //     ))
-  //   ]);
-  // }
+  Future getAliasbyID(String para) async {
+    try {
+      return await realDB
+          .reference()
+          .child('users')
+          .orderByChild('idname')
+          .equalTo(para)
+          .once();
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<List> getDataUSer(String text) async {
+    try {
+      var info = await realDB
+          .reference()
+          .child('users')
+          .orderByChild('idname')
+          .equalTo(text)
+          .once();
+      Map data = info.value;
+      List item = [];
+      data.forEach((index, data) => item.add({"key": index, ...data}));
+      return item;
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void _guardarMen(String key, String msn, String de, String para, int fech) {
+    realDB
+        .reference()
+        .child('groupMenssage')
+        .child(key)
+        .child('mensajes')
+        .push()
+        .set({
+      'msn': msn,
+      'fech': fech,
+      "dequien": de, //esta es mi id
+      "paraquien": para,
+    });
+  }
+
+  void _updateGrupo(String groupKey, int fech) {
+    realDB
+        .reference()
+        .child('groupMenssage')
+        .child(groupKey)
+        .update({'fech': fech});
+  }
+
 }

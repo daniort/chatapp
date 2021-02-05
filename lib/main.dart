@@ -64,19 +64,25 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
             elevation: 0.0,
-            title: Text('MyChatApp'),
+            title: Text( 'Eres: ' + _state.idname),//  'MyChatApp'),
             actions: [
-              IconButton(
-                icon: Icon(Icons.menu),
+               IconButton(
+                icon: Icon(Icons.edit),
                 onPressed: () {
-                  print('hola');
+                  //_state.logout();
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.logout),
+                onPressed: () {
+                  _state.logout();
                 },
               ),
             ],
           ),
           body: TabBarView(
             children: [
-              ChatsPage(),
+              ConverPage(),
               ContactsPage(idname: _state.idname),
             ],
           ),

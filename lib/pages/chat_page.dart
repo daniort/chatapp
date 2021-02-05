@@ -4,15 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
-  final String idnameQuien;
   final String groupKey;
-  final Map para;
+  final String para;
 
-  ChatPage(
-      {Key key,
-      @required this.idnameQuien,
-      @required this.para,
-      @required this.groupKey})
+  ChatPage({Key key, @required this.para, @required this.groupKey})
       : super(key: key);
 
   @override
@@ -22,6 +17,11 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   TextEditingController inpuCon = new TextEditingController();
   ScrollController _scroCon = new ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class _ChatPageState extends State<ChatPage> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0.0,
-          title: Text(widget.para['alias']),
+          title: Text(widget.para),
         ),
         body: Center(
           child: Container(
@@ -49,9 +49,7 @@ class _ChatPageState extends State<ChatPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 StreamBuilder(
-                  stream: UserServices().getGroupMen(
-                      dequien: widget.idnameQuien,
-                      paraquien: widget.para['idname']),
+                  stream: UserServices().getGroupMen(widget.groupKey),
                   builder: (BuildContext context, AsyncSnapshot snap) {
                     switch (snap.connectionState) {
                       case ConnectionState.waiting:
@@ -65,21 +63,34 @@ class _ChatPageState extends State<ChatPage> {
                         Map dataStream = snap.data.snapshot.value;
                         if (snap.hasData != null && dataStream != null) {
                           if (dataStream.isNotEmpty) {
-                            List item = [];
-                            dataStream.forEach((index, data) {
-                              if ((data['dequien'] == widget.idnameQuien &&
-                                      data['paraquien'] ==
-                                          widget.para['idname']) ||
-                                  (data['dequien'] == widget.para['idname'] &&
-                                      data['paraquien'] == widget.idnameQuien))
-                                data['mensajes'].forEach((index, data) {
-                                  item.add(data);
+                            Map item = {};
+                            List _msns = [];
+                            bool _existe = false;
+                            if (widget.groupKey == null) {
+                              print(dataStream);
+                              dataStream.forEach((index, data) {
+                                List _users = List<String>.from(data['users']);
+                                print('sdfghjkl????????????');
+                                if (_users.contains(_state.idname) &&
+                                    _users.contains(widget.para)) {
+                                  item = ({"key": index, ...data});
+                                  _existe = true;
+                                }
+                              });
+                              if (_existe)
+                                item['mensajes'].forEach((index, data) {
+                                  _msns.add({"key": index, ...data});
                                 });
-                            });
-                            item.sort((a, b) {
-                              //return a['fech'].compareTo(b['fech']);
-                              return a['fech'].compareTo(b['fech']);
-                            });
+                            } else {
+                              Map item = dataStream;
+
+                              item['mensajes'].forEach((index, data) {
+                                _msns.add({"key": index, ...data});
+                              });
+                            }
+
+                            _msns
+                                .sort((a, b) => a['fech'].compareTo(b['fech']));
 
                             return Expanded(
                               child: SingleChildScrollView(
@@ -88,9 +99,11 @@ class _ChatPageState extends State<ChatPage> {
                                 reverse: true,
                                 child: Column(
                                   children: [
-                                    for (var x in item)
+                                    for (var x in _msns)
                                       Align(
-                                        alignment: Alignment.centerRight,
+                                        alignment: x['dequien'] == _state.idname
+                                            ? Alignment.centerRight
+                                            : Alignment.centerLeft,
                                         child: Container(
                                           margin: EdgeInsets.symmetric(
                                             horizontal: 10,
@@ -108,11 +121,24 @@ class _ChatPageState extends State<ChatPage> {
                                                   Colors.deepPurple[600]
                                                 ],
                                               ),
-                                              borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(20),
-                                                topRight: Radius.circular(20),
-                                                bottomLeft: Radius.circular(20),
-                                              )),
+                                              borderRadius: x['dequien'] ==
+                                                      _state.idname
+                                                  ? BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(20),
+                                                      topRight:
+                                                          Radius.circular(20),
+                                                      bottomLeft:
+                                                          Radius.circular(20),
+                                                    )
+                                                  : BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(20),
+                                                      topRight:
+                                                          Radius.circular(20),
+                                                      bottomRight:
+                                                          Radius.circular(20),
+                                                    )),
                                           child: Text(x['msn'],
                                               style: TextStyle(
                                                   color: Colors.white)),
@@ -122,6 +148,8 @@ class _ChatPageState extends State<ChatPage> {
                                 ),
                               ),
                             );
+                          } else {
+                            return Expanded(child: Container());
                           }
                         } else {
                           return Expanded(child: Container());
@@ -158,8 +186,8 @@ class _ChatPageState extends State<ChatPage> {
                           if (inpuCon.text.isNotEmpty) {
                             UserServices()
                                 .newMessage(
-                                    quien: widget.idnameQuien,
-                                    para: widget.para['idname'],
+                                    user1: _state.idname,
+                                    user2: widget.para,
                                     msn: inpuCon.text,
                                     groupKey: widget.groupKey)
                                 .then((_) => inpuCon.clear());

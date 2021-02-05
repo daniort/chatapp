@@ -34,7 +34,7 @@ class AppState with ChangeNotifier {
   // Map categoria = null;
   // List namePets;
   // List listaCarrito = [];
-  // List dataCollecion = [];
+  List dataUser = [];
   // List allProducsData = [];
   // List producsBusquedaData = [];
   // List<String> filtrosProductos = [];
@@ -88,5 +88,36 @@ class AppState with ChangeNotifier {
       error = true;
       notifyListeners();
     }
+  }
+
+  void signup(String text) {
+    loading = true;
+    notifyListeners();
+    UserServices().getDataUSer(text).then((value) {
+      if (value != null) {
+        dataUser = value;
+        idname = value[0]['idname'];
+        print(value[0]['idname']);
+        print('holiii!!!');
+        // _prefs.setBool('isLogin', true);
+        // _prefs.setString('username', username);
+
+        // _prefs.setString('username', idname);
+        login = true;
+        loading = false;
+        notifyListeners();
+      }
+    });
+  }
+
+  void logout() {
+    dataUser = null;
+    idname = null;
+    // _prefs.setBool('isLogin', true);
+    // _prefs.setString('username', username);
+    // _prefs.setString('username', idname);
+    login = false;
+    loading = false;
+    notifyListeners();
   }
 }
