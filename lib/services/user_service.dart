@@ -6,29 +6,17 @@ import 'package:flutter/material.dart';
 class UserServices {
   final FirebaseDatabase realDB = new FirebaseDatabase();
 
-
-   Future<void> newMessage(
+  Future<void> newMessage(
       {String user1, String user2, String msn, String groupKey}) async {
-
-
-        print(user1);
-        print(user2);
-        print(msn);
-        print(groupKey);
-
     DateTime hoy = DateTime.now();
-    TimeOfDay ahora = TimeOfDay.now();
-    int fech = fechData(hoy, ahora);
-
+    String _hora = "${hoy.hour}:${hoy.minute}";
+    int fech = fechData(hoy);
     try {
       if (groupKey == null) {
-        var grupo = await realDB
-            .reference()
-            .child('groupMenssage')
-            .once(); 
+        var grupo = await realDB.reference().child('groupMenssage').once();
         if (grupo == null || grupo.value == null) {
           String _keygrup = _crearGrupo(user1, user2, fech);
-          _guardarMen(_keygrup, msn, user1, user2, fech);
+          _guardarMen(_keygrup, msn, user1, user2, fech, _hora);
         } else {
           bool existe = false;
           String key;
@@ -42,17 +30,17 @@ class UserServices {
           });
           if (existe) {
             print('Si ESTABA, YA LO ACTUALIZÉ');
-            _guardarMen(item['key'], msn, user1, user2, fech);
+            _guardarMen(item['key'], msn, user1, user2, fech, _hora);
             _updateGrupo(key, fech);
           } else {
             print('NO EXISTE, lo Creé.');
             String _keygu = await _crearGrupo(user1, user2, fech);
-            _guardarMen(_keygu, msn, user1, user2, fech);
+            _guardarMen(_keygu, msn, user1, user2, fech, _hora);
           }
         }
       } else {
         print('ME PASASTE LA KEY DEL GRUPO');
-        _guardarMen(groupKey, msn, user1, user2, fech);
+        _guardarMen(groupKey, msn, user1, user2, fech, _hora);
         _updateGrupo(groupKey, fech);
       }
     } catch (e) {
@@ -60,18 +48,17 @@ class UserServices {
     }
   }
 
-
-
-  Future<bool> newUser(String username) async {
+  Future<String> newUser(String username) async {
     try {
-      realDB.reference().child('users').push().set({
+      DatabaseReference databaseReference =
+          realDB.reference().child("users").push();
+      databaseReference.set({
         "idname": username,
         "alias": username,
       });
-      return true;
+      return databaseReference.key;
     } catch (e) {
       print(e);
-      return false;
     }
   }
 
@@ -105,10 +92,8 @@ class UserServices {
     }
   }
 
-  int fechData(DateTime selectedDate, TimeOfDay timeOfDay) =>
-      selectedDate.millisecondsSinceEpoch;
+  int fechData(hoy) => hoy.millisecondsSinceEpoch;
 
- 
   String _crearGrupo(String quien, String para, int fech) {
     DatabaseReference databaseReference =
         realDB.reference().child("groupMenssage").push();
@@ -140,24 +125,31 @@ class UserServices {
     }
   }
 
-  Future<List> getDataUSer(String text) async {
+  Future<List> getDataUSer(String key, String idname) async {
     try {
       var info = await realDB
           .reference()
           .child('users')
           .orderByChild('idname')
-          .equalTo(text)
+          .equalTo(idname)
           .once();
-      Map data = info.value;
       List item = [];
-      data.forEach((index, data) => item.add({"key": index, ...data}));
+      info.value.forEach((index, data) => item.add({"key": index, ...data}));
       return item;
     } catch (e) {
       print(e);
+      return null;
     }
   }
 
-  void _guardarMen(String key, String msn, String de, String para, int fech) {
+  void _guardarMen(
+      String key, String msn, String de, String para, int fech, String hora) {
+
+var string = 'dartlang es una abuena app no?';
+String letra = string.substring(0,1).toUpperCase(); 
+String elresto = string.substring(1, string.length ); // 'art'
+
+  print(letra + elresto);
     realDB
         .reference()
         .child('groupMenssage')
@@ -165,7 +157,9 @@ class UserServices {
         .child('mensajes')
         .push()
         .set({
-      'msn': msn,
+      'msn': "${msn.substring(0,1).toUpperCase()}${msn.substring(1, msn.length)}",
+      'hora': hora,
+      'visto': false,
       'fech': fech,
       "dequien": de, //esta es mi id
       "paraquien": para,
@@ -180,4 +174,64 @@ class UserServices {
         .update({'fech': fech});
   }
 
+  void changeAlias(String text, String keyUser) {
+    realDB.reference().child('users').child(keyUser).update({'alias': text});
+  }
+
+  void envisto(String keygrupo, String miId, String para, List keymsn) {
+    print(keygrupo);
+    print(miId);
+    print(para);
+    print(keymsn);
+    try {
+      if (keygrupo != null) {
+        for (var ms in keymsn) {
+          realDB
+              .reference()
+              .child('groupMenssage')
+              .child(keygrupo)
+              .child('mensajes')
+              .child(ms['key'])
+              .update({'visto': true});
+        }
+      } else {
+        String _key;
+        realDB.reference().child('groupMenssage').once().then((value) {
+          value.value.forEach((index, data) {
+            List _users = data['users'];
+            if (_users.contains(miId) && _users.contains(para)) {
+              _key = data['key'];
+            }
+          });
+        });
+        for (var ms in keymsn) {
+          realDB
+              .reference()
+              .child('groupMenssage')
+              .child(_key)
+              .child('mensajes')
+              .child(ms['key'])
+              .update({'visto': true});
+        }
+      }
+    } catch (e) {
+      print(e);
+      print('ERROR');
+    }
+  }
+
+  Future<List> getAlias() async {
+    try {
+      var info = await realDB
+          .reference()
+          .child('users')
+          .once();
+      List item = [];
+      info.value.forEach((index, data) => item.add({"key": index, ...data}));
+      return item;
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
 }

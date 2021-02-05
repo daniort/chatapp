@@ -101,13 +101,21 @@ class _LoginPageState extends State<LoginPage> {
                           onTap: () {
                             if (inpuCon.text.isNotEmpty)
                               _state.signup(inpuCon.text);
-                              
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 15),
-                            child: Center(
-                              child: Icon(Icons.login, color: Colors.white),
-                            ),
+                            child: _state.loading
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Center(
+                                    child:
+                                        Icon(Icons.login, color: Colors.white),
+                                  ),
                           ),
                         ),
                       ],
@@ -121,34 +129,21 @@ class _LoginPageState extends State<LoginPage> {
                       padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                           colors: <Color>[
                             Colors.white,
                             Colors.grey[100],
-                            Colors.grey[200],
-                            Colors.grey[100]
                           ],
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Center(
-                        child: _state.loading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Flexible(
-                                child: Text(
-                                  'Soy nuevo',
-                                  //'Ingresa como Anónimo',
-                                  overflow: TextOverflow.fade,
-                                  style: TextStyle(),
-                                ),
-                              ),
+                        child: Text(
+                          'Soy nuevo',
+                          overflow: TextOverflow.fade,
+                          style: TextStyle(),
+                        ),
                       ),
                     ),
                   ),

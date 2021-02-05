@@ -64,12 +64,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
             elevation: 0.0,
-            title: Text( 'Eres: ' + _state.idname),//  'MyChatApp'),
+            title: Text('Bienvenido'),
             actions: [
-               IconButton(
+              IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () {
-                  //_state.logout();
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => EditPage()));
                 },
               ),
               IconButton(

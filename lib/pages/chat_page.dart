@@ -17,10 +17,11 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   TextEditingController inpuCon = new TextEditingController();
   ScrollController _scroCon = new ScrollController();
-
+    String alias;
   @override
   void initState() {
     super.initState();
+    alias = widget.para;
   }
 
   @override
@@ -28,13 +29,20 @@ class _ChatPageState extends State<ChatPage> {
     final ancho = MediaQuery.of(context).size.width;
     final alto = MediaQuery.of(context).size.height - kToolbarHeight - 24;
     final _state = Provider.of<AppState>(context, listen: true);
+    print(_state.allAlias);
+    for( var u in _state.allAlias ){
+      if( u['idname'] == widget.para ){
+        alias = u['alias'];
+      }
+
+    }
 
     return Scaffold(
         backgroundColor: MyColors.primaryBackground,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0.0,
-          title: Text(widget.para),
+          title: Text(alias),
         ),
         body: Center(
           child: Container(
@@ -66,11 +74,10 @@ class _ChatPageState extends State<ChatPage> {
                             Map item = {};
                             List _msns = [];
                             bool _existe = false;
+
                             if (widget.groupKey == null) {
-                              print(dataStream);
                               dataStream.forEach((index, data) {
                                 List _users = List<String>.from(data['users']);
-                                print('sdfghjkl????????????');
                                 if (_users.contains(_state.idname) &&
                                     _users.contains(widget.para)) {
                                   item = ({"key": index, ...data});
@@ -83,14 +90,20 @@ class _ChatPageState extends State<ChatPage> {
                                 });
                             } else {
                               Map item = dataStream;
-
                               item['mensajes'].forEach((index, data) {
                                 _msns.add({"key": index, ...data});
                               });
                             }
-
                             _msns
                                 .sort((a, b) => a['fech'].compareTo(b['fech']));
+                            if (_msns.isNotEmpty) {
+                              if (_state.idname ==
+                                      _msns[_msns.length - 1]['paraquien'] &&
+                                  _msns[_msns.length - 1]['visto'] == false) {
+                                UserServices().envisto(widget.groupKey,
+                                    _state.idname, widget.para, _msns);
+                              }
+                            }
 
                             return Expanded(
                               child: SingleChildScrollView(

@@ -1,5 +1,6 @@
 import 'package:chatapp/pages/pages.dart';
 import 'package:chatapp/services/services.dart';
+import 'package:chatapp/values/values.dart';
 import 'package:flutter/material.dart';
 
 class ContactsPage extends StatefulWidget {
@@ -15,69 +16,82 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: FutureBuilder(
-      future: UserServices().getContacts(widget.idname),
-      builder: (context, snap) {
-        switch (snap.connectionState) {
-          case ConnectionState.waiting:
-            return Center(child: CircularProgressIndicator());
-            break;
-          case ConnectionState.none:
-            return Center(child: Text('Algo salió mal, intente nuevamente'));
-            break;
-          case ConnectionState.none:
-            return Center(child: Text('Algo salió mal, intente nuevamente'));
-            break;
-          case ConnectionState.done:
-            List _lista = snap.data;
-            if (_lista.isNotEmpty)
-              return ListView.builder(
-                itemCount: snap.data.length,
-                itemBuilder: (context, index) {
-                  Map user = snap.data[index];
-                  return InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => ChatPage(
-                                  para: user['idname'],
-                                  groupKey: null,
-                                )),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: <Color>[
-                              Colors.grey[100],
-                              Colors.deepPurple[50]
-                            ],
+        backgroundColor: MyColors.primaryBackground,
+        body: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(30),
+            ),
+          ),
+          child: FutureBuilder(
+            future: UserServices().getContacts(widget.idname),
+            builder: (context, snap) {
+              switch (snap.connectionState) {
+                case ConnectionState.waiting:
+                  return Center(child: CircularProgressIndicator());
+                  break;
+                case ConnectionState.none:
+                  return Center(
+                      child: Text('Algo salió mal, intente nuevamente'));
+                  break;
+                case ConnectionState.none:
+                  return Center(
+                      child: Text('Algo salió mal, intente nuevamente'));
+                  break;
+                case ConnectionState.done:
+                  List _lista = snap.data;
+                  if (_lista.isNotEmpty)
+                    return ListView.builder(
+                      itemCount: snap.data.length,
+                      itemBuilder: (context, index) {
+                        Map user = snap.data[index];
+                        return InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (context) => ChatPage(
+                                        para: user['idname'],
+                                        groupKey: null,
+                                      )),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: <Color>[
+                                    Colors.grey[100],
+                                    Colors.deepPurple[50]
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(10)),
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            child: ListTile(
+                              leading: CircleAvatar(),
+                              title: Text(user['alias']),
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(10)),
-                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      child: ListTile(
-                        leading: CircleAvatar(),
-                        title: Text(user['alias']),
-                      ),
-                    ),
-                  );
-                },
-              );
-            else
-              return Center(
-                  child: Text(
-                'Ups!\n Nadie esta en MyChatApp aún',
-                textAlign: TextAlign.center,
-              ));
+                        );
+                      },
+                    );
+                  else
+                    return Center(
+                        child: Text(
+                      'Ups!\n Nadie esta en MyChatApp aún',
+                      textAlign: TextAlign.center,
+                    ));
 
-            break;
+                  break;
 
-          default:
-            return Center(child: Text('Algo salió mal, intente nuevamente'));
-        }
-      },
-    ));
+                default:
+                  return Center(
+                      child: Text('Algo salió mal, intente nuevamente'));
+              }
+            },
+          ),
+        ));
   }
 }

@@ -7,59 +7,26 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppState with ChangeNotifier {
-  //final GoogleSignIn _googleSignIn = GoogleSignIn();
-  // final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final _facebookLogin = FacebookLogin();
-  // final _appleLogin = AppleSignIn();
-  // FirebaseDatabase realDB = new FirebaseDatabase();
-  // FirebaseUser currentUser() => _user;
-  // FirebaseUser _user;
-  // int indexBottomNavigationBar = 0;
   SharedPreferences _prefs;
   String idname = null;
-  // String errorM = "";
-  // String busqueda = "";
-  // String infoM = "";
-  // String isidUser() => _prefs.getString('idUser');
-  // bool isError() => _error;
-  // bool isMsn() => _mensaje;
-  // bool isSplash() => _splash;
-  // bool islogin() => _login;
-  // bool isloading() => _loading;
   bool login = false;
-  // bool _splash = false;
   bool loading = false;
   bool error = false;
-  // bool _mensaje = false;
-  // Map categoria = null;
-  // List namePets;
-  // List listaCarrito = [];
   List dataUser = [];
-  // List allProducsData = [];
-  // List producsBusquedaData = [];
-  // List<String> filtrosProductos = [];
-  // List<String> listaFiltros() => filtrosProductos;
-  // var dataUser;
-  // var dataRecor;
+  List allAlias = [];
 
-  // ignore: non_constant_identifier_names
-  LoginState() {
-    loginState();
+  AppState() {
+    appState();
   }
 
-  void loginState() {
-    // _prefs = await SharedPreferences.getInstance();
+  Future<void> appState() async {
+    _prefs = await SharedPreferences.getInstance();
     if (_prefs.containsKey('isLogin')) {
-      // _user = await _auth.currentUser();
-      // dataUser = await UserServices().datosbyId(_user.uid);
-      // cargarDatos(_prefs.getString("idUser"));
-      // _login = _user != null;
-      // _loading = false;
-      // print('antes del notify!!!!');
-
-      // notifyListeners();
-      // print('despues del notify!!!!');
-      // _cargarAllProducts();
+      idname = _prefs.getString("idname");
+      login = true;
+      loading = false;
+      notifyListeners();
+      getAllAlias();
     } else {
       loading = false;
       notifyListeners();
@@ -72,38 +39,40 @@ class AppState with ChangeNotifier {
     loading = true;
     notifyListeners();
     String username = "user${_ram().toString()}";
-    final bool newuser = await UserServices().newUser(username);
-    if (newuser) {
-      print('holiii!!!');
-      // _prefs.setBool('isLogin', true);
-      // _prefs.setString('username', username);
+    UserServices().newUser(username).then((value) {
       idname = username;
-      // _prefs.setString('username', idname);
       login = true;
       loading = false;
       notifyListeners();
-    } else {
-      login = false;
-      loading = false;
-      error = true;
-      notifyListeners();
-    }
+      getAllAlias();
+      UserServices().getDataUSer(value, username).then((value) {
+        if (value != null) {
+          dataUser = value;
+          idname = value[0]['idname'];
+          _prefs.setBool('isLogin', true);
+          _prefs.setString('idname', username);
+        }
+      }).catchError((e) {
+        print('Error al cargar los datos');
+      });
+    });
   }
 
-  void signup(String text) {
+  void signup(String idna) {
     loading = true;
     notifyListeners();
-    UserServices().getDataUSer(text).then((value) {
+    UserServices().getDataUSer(null, idna).then((value) {
       if (value != null) {
         dataUser = value;
         idname = value[0]['idname'];
-        print(value[0]['idname']);
-        print('holiii!!!');
-        // _prefs.setBool('isLogin', true);
-        // _prefs.setString('username', username);
-
-        // _prefs.setString('username', idname);
+        _prefs.setBool('isLogin', true);
+        _prefs.setString('idname', idname);
         login = true;
+        loading = false;
+        notifyListeners();
+        getAllAlias();
+      } else {
+        login = false;
         loading = false;
         notifyListeners();
       }
@@ -113,11 +82,31 @@ class AppState with ChangeNotifier {
   void logout() {
     dataUser = null;
     idname = null;
-    // _prefs.setBool('isLogin', true);
-    // _prefs.setString('username', username);
-    // _prefs.setString('username', idname);
+
     login = false;
     loading = false;
+    _prefs.clear();
     notifyListeners();
+  }
+
+  void getAllAlias() {
+    UserServices().getAlias().then((value) {
+      allAlias = value;
+    });
+  }
+
+  actualizarDatos(String idname) {
+   try {
+      UserServices().getDataUSer(dataUser[0]['key'], idname).then((value) {
+      if (value != null) {
+        dataUser = value;
+        idname = value[0]['idname'];
+      }
+    }).catchError((e) {
+      print('Error al cargar los datos');
+    });
+   } catch (e) {
+     print(e);
+   }
   }
 }
